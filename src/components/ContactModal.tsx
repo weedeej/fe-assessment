@@ -99,11 +99,27 @@ export function ContactModal(props: ContactModalProps) {
     };
     await setDoc(docRef, newContact, {merge: true});
     setIsSubmitLoading(false);
-    onOpenChange(false);
+    handleOpenChange(false);
+  }
+
+  function resetForm() {
+    setName("");
+    setLastContactDate(undefined);
+    setImagePreviewData(null);
+    setValidationMessage({
+      name: "",
+      image: "",
+      lastContactDate: "",
+    });
+  }
+
+  function handleOpenChange(open: boolean) {
+    resetForm();
+    onOpenChange(open);
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
