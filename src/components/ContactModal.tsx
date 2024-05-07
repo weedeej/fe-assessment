@@ -14,9 +14,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { db, storage } from "@/firebase/config";
 import { ImagePreviewData } from "@/types";
-import { Timestamp, collection, doc, setDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { Timestamp, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage";
 import { useEffect, useRef, useState } from "react";
+import { TrashIcon } from "@radix-ui/react-icons";
 
 type ContactModalProps = {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export function ContactModal(props: ContactModalProps) {
   const [name, setName] = useState<string>("");
   const [imagePreviewData, setImagePreviewData] = useState<ImagePreviewData | null>(null);
   const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [validationMessage, setValidationMessage] = useState<Record<"name" | "image" | "lastContactDate", string>>({
     name: "",
@@ -97,8 +99,19 @@ export function ContactModal(props: ContactModalProps) {
       lastContactDate,
       imagePath: contact?.imagePath ?? `/avatars/${docRef.id}.${fileExtension}`,
     };
-    await setDoc(docRef, newContact, {merge: true});
+    await setDoc(docRef, newContact, { merge: true });
     setIsSubmitLoading(false);
+    handleOpenChange(false);
+  }
+
+  async function handleDelete() {
+    if (!contact) return;
+    setIsDeleting(true);
+    const docRef = doc(db, "contacts", contact._id);
+    const fileRef = ref(storage, contact.imagePath);
+    await deleteObject(fileRef);
+    await deleteDoc(docRef);
+    setIsDeleting(false);
     handleOpenChange(false);
   }
 
@@ -159,13 +172,20 @@ export function ContactModal(props: ContactModalProps) {
           </div>
         </div>
         <DialogFooter>
-          <div className="flex flex-row w-full">
+          <div className="flex flex-row w-full justify-between">
             <Button
               type="submit"
               onClick={handleSubmit}
               disabled={isSubmitLoading}>
               {isSubmitLoading && <Spinner />} {contact ? "Update Contact" : "Save Contact"}
             </Button>
+            {
+              contact && (
+                <Button size="icon" variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                  <TrashIcon />
+                </Button>
+              )
+            }
           </div>
         </DialogFooter>
       </DialogContent>
