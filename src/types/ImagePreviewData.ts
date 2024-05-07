@@ -1,4 +1,5 @@
 export type ImagePreviewData = {
-  fileName: string;
+  fileName?: string;
   dataUrl: string;
+  file?: File;
 }
