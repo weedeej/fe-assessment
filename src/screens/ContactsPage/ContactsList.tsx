@@ -3,7 +3,7 @@
 import { ContactCard, ContactModal, Spinner } from "@/components";
 import { db } from "@/firebase/config";
 import { UserContact } from "@/types";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 export function ContactsList() {
@@ -11,7 +11,7 @@ export function ContactsList() {
   const [selectedContact, setSelectedContact] = useState<UserContact>();
 
   useEffect(() => {
-    return onSnapshot(collection(db, "contacts"), (snapshot) => {
+    return onSnapshot(query(collection(db, "contacts"), orderBy("lastContactDate", "asc")), (snapshot) => {
       if (snapshot.empty) return setContacts([]);
       const contactsData = snapshot.docs.map((doc) => {
         return doc.data() as UserContact;
