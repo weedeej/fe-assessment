@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactCard, Spinner } from "@/components";
+import { ContactCard, ContactModal, Spinner } from "@/components";
 import { db } from "@/firebase/config";
 import { UserContact } from "@/types";
 import { collection, onSnapshot } from "firebase/firestore";
@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 
 export function ContactsList() {
   const [contacts, setContacts] = useState<UserContact[] | null>(null);
+  const [selectedContact, setSelectedContact] = useState<UserContact>();
 
   useEffect(() => {
     return onSnapshot(collection(db, "contacts"), (snapshot) => {
@@ -18,6 +19,11 @@ export function ContactsList() {
       setContacts(contactsData);
     });
   }, []);
+
+  function handleModalOpenChange(open: boolean) {
+    setSelectedContact(!open ? undefined : selectedContact);
+  }
+
   return (
     <div className="flex flex-col h-full gap-2">
       {
@@ -34,9 +40,10 @@ export function ContactsList() {
             <Spinner className="w-10 h-10" />
           </div>
         ) : contacts?.map((contact) => (
-          <ContactCard key={contact._id} contact={contact} />
+          <ContactCard key={contact._id} contact={contact} onContactClick={setSelectedContact} />
         ))
       }
+      <ContactModal contact={selectedContact} isOpen={!!selectedContact} onOpenChange={handleModalOpenChange}/>
     </div>
   )
 }
